@@ -4,118 +4,52 @@
   <meta charset="UTF-8">
   <title>資産ランキング</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom, #f0f0f5, #ffffff);
-      text-align: center;
-      padding: 2em;
-    }
-
-    h1 {
-      font-size: 2.2em;
-      margin-bottom: 1.5em;
-      color: #333;
-    }
-
-    .podium {
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-      gap: 30px;
-      height: 350px;
-      margin-top: 2em;
-    }
-
-    .rank-box {
-      width: 120px;
-      border-radius: 12px 12px 0 0;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      align-items: center;
-      padding: 10px;
-      position: relative;
-      animation: pop 0.6s ease forwards;
-      opacity: 0;
-      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    .rank-1 {
-      height: 220px;
-      background: linear-gradient(180deg, #FFD700, #FFC400);
-      animation-delay: 0.2s;
-    }
-
-    .rank-2 {
-      height: 180px;
-      background: linear-gradient(180deg, #C0C0C0, #AAAAAA);
-      animation-delay: 0.4s;
-    }
-
-    .rank-3 {
-      height: 140px;
-      background: linear-gradient(180deg, #CD7F32, #AA5E22);
-      animation-delay: 0.6s;
-    }
-
-    .nickname {
-      font-weight: bold;
-      margin-top: 8px;
-      color: #222;
-    }
-
-    .balance {
-      font-size: 1.2em;
-      font-weight: bold;
-      color: white;
-      background: rgba(0, 0, 0, 0.15);
-      padding: 4px 8px;
-      border-radius: 6px;
-      margin-bottom: 10px;
-    }
-
+    body { font-family: sans-serif; background: #f0f0f5; text-align: center; padding: 2em; }
+    h1 { font-size: 2em; margin-bottom: 1em; }
+    .podium { display: flex; justify-content: center; align-items: flex-end; gap: 1em; }
+    .podium__item { position: relative; width: 120px; }
+    .podium__bar { width: 100%; border-radius: 8px 8px 0 0; color: white; display: flex; flex-direction: column-reverse; justify-content: flex-start; }
+    .first { height: 220px; background: gold; }
+    .second { height: 180px; background: silver; }
+    .third { height: 140px; background: peru; }
+    .label { margin-top: 8px; font-weight: bold; color: #333; }
+    .balance { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; font-size: 0.9em; }
     @keyframes pop {
-      0% { transform: translateY(50px); opacity: 0; }
+      0% { transform: translateY(40px); opacity: 0; }
       100% { transform: translateY(0); opacity: 1; }
     }
+    .podium__item { opacity: 0; animation: pop 0.6s ease forwards; }
+    .podium__item:nth-child(1) { animation-delay: 0.2s; }
+    .podium__item:nth-child(2) { animation-delay: 0.4s; }
+    .podium__item:nth-child(3) { animation-delay: 0.6s; }
   </style>
 </head>
 <body>
   <h1>🏆 資産ランキング 🏆</h1>
-  <div class="podium">
-    <div class="rank-box rank-2">
-      <div class="balance" id="balance2">--</div>
-      <div class="nickname" id="rank2">--位</div>
-    </div>
-    <div class="rank-box rank-1">
-      <div class="balance" id="balance1">--</div>
-      <div class="nickname" id="rank1">--位</div>
-    </div>
-    <div class="rank-box rank-3">
-      <div class="balance" id="balance3">--</div>
-      <div class="nickname" id="rank3">--位</div>
-    </div>
-  </div>
+  <div class="podium" id="podium"></div>
 
   <script>
-    fetch("https://ddtszhkycoqnffgciucl.supabase.co/functions/v1/GetSheetDataGetForRanking")
-      .then(res => res.json())
-      .then(res => {
-        if (res.status === "success") {
-          const top3 = res.data.slice(0, 3);
-          const format = n => n.toLocaleString("ja-JP") + "円";
-
-          document.getElementById("rank1").textContent = top3[0]?.nickname || "1位";
-          document.getElementById("balance1").textContent = format(top3[0]?.balance || 0);
-
-          document.getElementById("rank2").textContent = top3[1]?.nickname || "2位";
-          document.getElementById("balance2").textContent = format(top3[1]?.balance || 0);
-
-          document.getElementById("rank3").textContent = top3[2]?.nickname || "3位";
-          document.getElementById("balance3").textContent = format(top3[2]?.balance || 0);
+    fetch("https://YOUR_PROJECT_URL/functions/v1/getUserRanking")
+      .then(r => r.json())
+      .then(json => {
+        if (json.status === "success") {
+          const data = json.data.slice(0,3);
+          const podium = document.getElementById("podium");
+          const sizes = ["second","first","third"];
+          data.forEach((user, idx) => {
+            const div = document.createElement("div");
+            div.className = "podium__item";
+            div.innerHTML = `
+              <div class="podium__bar ${sizes[idx]}">
+                <div class="balance">¥${Number(user.balance).toLocaleString()}</div>
+              </div>
+              <div class="label">${user.nickname}</div>
+            `;
+            podium.appendChild(div);
+          });
         }
-      });
+      })
+      .catch(err => console.error(err));
   </script>
 </body>
 </html>
