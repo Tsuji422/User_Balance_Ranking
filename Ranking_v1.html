@@ -1,55 +1,83 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>資産ランキング</title>
+  <meta charset="UTF-8" />
+  <title>🏆 資産ランキング</title>
+  <link href="https://fonts.googleapis.com/css?family=Oswald:400|Raleway:400,700" rel="stylesheet">
   <style>
-    body { font-family: sans-serif; background: #f0f0f5; text-align: center; padding: 2em; }
-    h1 { font-size: 2em; margin-bottom: 1em; }
-    .podium { display: flex; justify-content: center; align-items: flex-end; gap: 1em; }
-    .podium__item { position: relative; width: 120px; }
-    .podium__bar { width: 100%; border-radius: 8px 8px 0 0; color: white; display: flex; flex-direction: column-reverse; justify-content: flex-start; }
-    .first { height: 220px; background: gold; }
-    .second { height: 180px; background: silver; }
-    .third { height: 140px; background: peru; }
-    .label { margin-top: 8px; font-weight: bold; color: #333; }
-    .balance { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; font-size: 0.9em; }
-    @keyframes pop {
-      0% { transform: translateY(40px); opacity: 0; }
-      100% { transform: translateY(0); opacity: 1; }
+    *,
+    :before,
+    :after { box-sizing: border-box; }
+    body {
+      background: #1d1f20;
+      color: #e5e5e5;
+      font: 16px/1.25 'Raleway', sans-serif;
+      text-align: center;
+      padding: 20px;
     }
-    .podium__item { opacity: 0; animation: pop 0.6s ease forwards; }
-    .podium__item:nth-child(1) { animation-delay: 0.2s; }
-    .podium__item:nth-child(2) { animation-delay: 0.4s; }
-    .podium__item:nth-child(3) { animation-delay: 0.6s; }
+    h1 {
+      font-family: 'Oswald', sans-serif;
+      margin-bottom: 20px;
+    }
+    #wrapper {
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 80em;
+    }
+    ol.podium-rank {
+      display: flex;
+      list-style: none;
+      padding: 0;
+      text-align: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    ol.podium-rank > li {
+      background: #2c2f33;
+      padding: 15px;
+      border-radius: 8px;
+      width: 150px;
+      transition: transform 0.3s ease;
+    }
+    ol.podium-rank > li:hover { transform: scale(1.05); }
+    .rank { font-size: 1.5em; font-weight: bold; margin-bottom: 5px; }
+    .nickname { font-size: 1.2em; }
+    .balance { margin-top: 5px; font-weight: bold; color: #ffd700; }
+    .gold { background: #FFD700; color: #000; }
+    .silver { background: #C0C0C0; color: #000; }
+    .bronze { background: #CD7F32; color: #000; }
   </style>
 </head>
 <body>
   <h1>🏆 資産ランキング 🏆</h1>
-  <div class="podium" id="podium"></div>
+  <div id="wrapper">
+    <ol class="podium-rank" id="rankingList">
+      <!-- JSで動的に追加 -->
+    </ol>
+  </div>
 
   <script>
-    fetch("https://ddtszhkycoqnffgciucl.supabase.co/functions/v1/GetSheetDataGetForRanking")
-      .then(r => r.json())
-      .then(json => {
-        if (json.status === "success") {
-          const data = json.data.slice(0,3);
-          const podium = document.getElementById("podium");
-          const sizes = ["second","first","third"];
-          data.forEach((user, idx) => {
-            const div = document.createElement("div");
-            div.className = "podium__item";
-            div.innerHTML = `
-              <div class="podium__bar ${sizes[idx]}">
-                <div class="balance">¥${Number(user.balance).toLocaleString()}</div>
-              </div>
-              <div class="label">${user.nickname}</div>
+    fetch("https://YOUR_PROJECT_URL/functions/v1/getUserRanking")
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === "success") {
+          const container = document.getElementById("rankingList");
+          res.data.slice(0, 7).forEach((user, index) => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              <div class="rank">${index + 1}位</div>
+              <div class="nickname">${user.nickname}</div>
+              <div class="balance">¥${Number(user.balance).toLocaleString()}</div>
             `;
-            podium.appendChild(div);
+            if (index === 0) li.classList.add("gold");
+            if (index === 1) li.classList.add("silver");
+            if (index === 2) li.classList.add("bronze");
+            container.appendChild(li);
           });
         }
       })
-      .catch(err => console.error(err));
+      .catch(err => console.error("❌ Fetch Error:", err));
   </script>
 </body>
 </html>
