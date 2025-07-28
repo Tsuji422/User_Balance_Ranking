@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ランキング</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background-color: #f5f5f5;
+      padding: 2em;
+    }
+    h1 {
+      margin-bottom: 2em;
+    }
+    .podium {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      height: 300px;
+      gap: 10px;
+    }
+    .rank-box {
+      width: 80px;
+      position: relative;
+      background: #ffd700;
+      color: white;
+      border-radius: 8px 8px 0 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      animation: pop 0.6s ease forwards;
+      opacity: 0;
+    }
+    .rank-box span {
+      position: absolute;
+      bottom: 100%;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #333;
+    }
+    .rank-1 { height: 180px; background: #ffd700; animation-delay: 0.1s; }
+    .rank-2 { height: 140px; background: #c0c0c0; animation-delay: 0.3s; }
+    .rank-3 { height: 100px; background: #cd7f32; animation-delay: 0.5s; }
+
+    @keyframes pop {
+      0% { transform: translateY(50px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🏆 資産ランキング 🏆</h1>
+  <div class="podium">
+    <div class="rank-box rank-2"><span id="rank2">---位</span></div>
+    <div class="rank-box rank-1"><span id="rank1">---位</span></div>
+    <div class="rank-box rank-3"><span id="rank3">---位</span></div>
+  </div>
+  <script>
+    fetch("https://ddtszhkycoqnffgciucl.supabase.co/functions/v1/GetSheetDataGetForRanking")
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === "success") {
+          const top3 = res.data.slice(0, 3);
+          document.getElementById("rank1").textContent = top3[0]?.nickname || "1位";
+          document.getElementById("rank2").textContent = top3[1]?.nickname || "2位";
+          document.getElementById("rank3").textContent = top3[2]?.nickname || "3位";
+        }
+      });
+  </script>
+</body>
+</html>
