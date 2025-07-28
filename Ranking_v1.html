@@ -2,46 +2,78 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ランキング</title>
+  <title>資産ランキング</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #f0f0f5, #ffffff);
       text-align: center;
-      background-color: #f5f5f5;
       padding: 2em;
     }
+
     h1 {
-      margin-bottom: 2em;
+      font-size: 2.2em;
+      margin-bottom: 1.5em;
+      color: #333;
     }
+
     .podium {
       display: flex;
       justify-content: center;
       align-items: flex-end;
-      height: 300px;
-      gap: 10px;
+      gap: 30px;
+      height: 350px;
+      margin-top: 2em;
     }
+
     .rank-box {
-      width: 80px;
-      position: relative;
-      background: #ffd700;
+      width: 120px;
+      border-radius: 12px 12px 0 0;
       color: white;
-      border-radius: 8px 8px 0 0;
       display: flex;
-      align-items: flex-end;
-      justify-content: center;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 10px;
+      position: relative;
       animation: pop 0.6s ease forwards;
       opacity: 0;
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
     }
-    .rank-box span {
-      position: absolute;
-      bottom: 100%;
-      margin-bottom: 8px;
+
+    .rank-1 {
+      height: 220px;
+      background: linear-gradient(180deg, #FFD700, #FFC400);
+      animation-delay: 0.2s;
+    }
+
+    .rank-2 {
+      height: 180px;
+      background: linear-gradient(180deg, #C0C0C0, #AAAAAA);
+      animation-delay: 0.4s;
+    }
+
+    .rank-3 {
+      height: 140px;
+      background: linear-gradient(180deg, #CD7F32, #AA5E22);
+      animation-delay: 0.6s;
+    }
+
+    .nickname {
       font-weight: bold;
-      color: #333;
+      margin-top: 8px;
+      color: #222;
     }
-    .rank-1 { height: 180px; background: #ffd700; animation-delay: 0.1s; }
-    .rank-2 { height: 140px; background: #c0c0c0; animation-delay: 0.3s; }
-    .rank-3 { height: 100px; background: #cd7f32; animation-delay: 0.5s; }
+
+    .balance {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: white;
+      background: rgba(0, 0, 0, 0.15);
+      padding: 4px 8px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
 
     @keyframes pop {
       0% { transform: translateY(50px); opacity: 0; }
@@ -52,19 +84,36 @@
 <body>
   <h1>🏆 資産ランキング 🏆</h1>
   <div class="podium">
-    <div class="rank-box rank-2"><span id="rank2">---位</span></div>
-    <div class="rank-box rank-1"><span id="rank1">---位</span></div>
-    <div class="rank-box rank-3"><span id="rank3">---位</span></div>
+    <div class="rank-box rank-2">
+      <div class="balance" id="balance2">--</div>
+      <div class="nickname" id="rank2">--位</div>
+    </div>
+    <div class="rank-box rank-1">
+      <div class="balance" id="balance1">--</div>
+      <div class="nickname" id="rank1">--位</div>
+    </div>
+    <div class="rank-box rank-3">
+      <div class="balance" id="balance3">--</div>
+      <div class="nickname" id="rank3">--位</div>
+    </div>
   </div>
+
   <script>
     fetch("https://ddtszhkycoqnffgciucl.supabase.co/functions/v1/GetSheetDataGetForRanking")
       .then(res => res.json())
       .then(res => {
         if (res.status === "success") {
           const top3 = res.data.slice(0, 3);
+          const format = n => n.toLocaleString("ja-JP") + "円";
+
           document.getElementById("rank1").textContent = top3[0]?.nickname || "1位";
+          document.getElementById("balance1").textContent = format(top3[0]?.balance || 0);
+
           document.getElementById("rank2").textContent = top3[1]?.nickname || "2位";
+          document.getElementById("balance2").textContent = format(top3[1]?.balance || 0);
+
           document.getElementById("rank3").textContent = top3[2]?.nickname || "3位";
+          document.getElementById("balance3").textContent = format(top3[2]?.balance || 0);
         }
       });
   </script>
