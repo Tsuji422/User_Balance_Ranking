@@ -29,7 +29,7 @@
   <div class="podium" id="podium"></div>
 
   <script>
-    fetch("https://YOUR_PROJECT_URL/functions/v1/getUserRanking")
+    fetch("https://ddtszhkycoqnffgciucl.supabase.co/functions/v1/GetSheetDataGetForRanking")
       .then(r => r.json())
       .then(json => {
         if (json.status === "success") {
