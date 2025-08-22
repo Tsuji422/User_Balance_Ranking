@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Balance Ranking Podium</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- GSAP CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Zen Maru Gothic', sans-serif;
+        background: linear-gradient(to bottom, #f8fafc, #e0f2fe);
+        padding: env(safe-area-inset-top, 16px) env(safe-area-inset-right, 16px) env(safe-area-inset-bottom, 16px) env(safe-area-inset-left, 16px);
+      }
+      .podium-card {
+        animation: fadeInUp 0.8s ease forwards;
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .gold-bg {
+        background: linear-gradient(to top, #f9d423, #ff4e50);
+      }
+      .silver-bg {
+        background: linear-gradient(to top, #d7d7d7, #eeeeee);
+      }
+      .bronze-bg {
+        background: linear-gradient(to top, #cd7f32, #f2c888);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex items-center justify-center px-4">
+    <div id="podium" class="flex flex-wrap gap-4 items-end justify-center max-w-xl w-full"></div>
+
+    <script>
+      async function fetchRanking() {
+        try {
+          const res = await fetch('https://ddtszhkycoqnffgciucl.supabase.co/functions/v1/GetSheetDataGetForRanking'); // ← 実際のURLに置き換え
+          const result = await res.json();
+          const data = result.data;
+
+          const podium = document.getElementById('podium');
+          const ranks = [
+            { medal: '🥇', class: 'gold-bg', height: 'h-56' },
+            { medal: '🥈', class: 'silver-bg', height: 'h-40' },
+            { medal: '🥉', class: 'bronze-bg', height: 'h-32' }
+          ];
+
+          // 中央を1位、左が2位、右が3位になるよう順番を調整
+          const layout = [1, 0, 2];
+
+          layout.forEach((dataIndex, visualIndex) => {
+            const user = data[dataIndex];
+            if (!user) return;
+
+            const { medal, class: bgClass, height } = ranks[dataIndex];
+            const el = document.createElement('div');
+            el.className = `podium-card flex flex-col items-center justify-end text-white shadow-xl rounded-2xl w-24 sm:w-28 ${height} ${bgClass} p-3 relative`;
+            el.innerHTML = `
+              <div class="text-3xl sm:text-4xl">${medal}</div>
+              <div class="font-bold text-base sm:text-lg mt-2">${user.nickname}</div>
+              <div class="text-xs sm:text-sm">¥${user.balance.toLocaleString()}</div>
+            `;
+            podium.appendChild(el);
+          });
+
+          gsap.from('.podium-card', {
+            y: 50,
+            opacity: 0,
+            duration: 0.6,
+            stagger: 0.2,
+            ease: 'back.out(1.7)'
+          });
+        } catch (err) {
+          document.body.innerHTML = '<p class="text-red-500 text-center">ランキング情報の取得に失敗しました。</p>';
+        }
+      }
+
+      fetchRanking();
+    </script>
+  </body>
+</html>
