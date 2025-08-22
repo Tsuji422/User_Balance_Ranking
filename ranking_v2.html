@@ -15,7 +15,7 @@
         font-family: 'Zen Maru Gothic', sans-serif;
         background: linear-gradient(to bottom, #f8fafc, #e0f2fe);
       }
-      .podium div {
+      .podium-card {
         animation: fadeInUp 0.8s ease forwards;
       }
       @keyframes fadeInUp {
@@ -31,31 +31,41 @@
     </style>
   </head>
   <body class="flex items-center justify-center min-h-screen">
-    <div id="podium" class="flex gap-4 items-end podium"></div>
+    <div id="podium" class="flex gap-6 items-end justify-center podium"></div>
 
     <script>
       async function fetchRanking() {
-        const res = await fetch('https://ddtszhkycoqnffgciucl.supabase.co/functions/v1/GetSheetDataGetForRanking'); // ← ここを実際のURLに置き換えてください
+        const res = await fetch('https://your-edge-function-url.com'); // ← 実際のURLに置き換え
         const result = await res.json();
         const data = result.data;
 
         const podium = document.getElementById('podium');
-        const medals = ['🥇', '🥈', '🥉'];
-        const heights = ['h-48', 'h-36', 'h-28'];
+        const ranks = [
+          { medal: '🥇', color: 'bg-yellow-300', height: 'h-56' },
+          { medal: '🥈', color: 'bg-gray-300', height: 'h-40' },
+          { medal: '🥉', color: 'bg-amber-700', height: 'h-32' }
+        ];
 
-        data.slice(0, 3).forEach((user, index) => {
+        // 中央を1位、左が2位、右が3位になるよう順番を調整
+        const layout = [1, 0, 2];
+
+        layout.forEach((dataIndex, visualIndex) => {
+          const user = data[dataIndex];
+          if (!user) return;
+
+          const { medal, color, height } = ranks[dataIndex];
           const el = document.createElement('div');
-          el.className = `flex flex-col items-center justify-end bg-white shadow-md rounded-xl w-28 ${heights[index]} p-2 relative`;
+          el.className = `podium-card flex flex-col items-center justify-end bg-white shadow-xl rounded-2xl w-28 ${height} p-3 relative`;
           el.innerHTML = `
-            <div class="text-3xl">${medals[index]}</div>
-            <div class="font-bold mt-2">${user.nickname}</div>
+            <div class="text-4xl">${medal}</div>
+            <div class="font-bold text-lg mt-2">${user.nickname}</div>
             <div class="text-sm text-gray-600">¥${user.balance.toLocaleString()}</div>
           `;
           podium.appendChild(el);
         });
 
         // GSAP animation
-        gsap.from('.podium div', {
+        gsap.from('.podium-card', {
           y: 50,
           opacity: 0,
           duration: 0.6,
