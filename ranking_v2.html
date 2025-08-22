@@ -35,7 +35,7 @@
 
     <script>
       async function fetchRanking() {
-        const res = await fetch('https://your-edge-function-url.com'); // ← 実際のURLに置き換え
+        const res = await fetch('https://ddtszhkycoqnffgciucl.supabase.co/functions/v1/GetSheetDataGetForRanking'); // ← 実際のURLに置き換え
         const result = await res.json();
         const data = result.data;
 
