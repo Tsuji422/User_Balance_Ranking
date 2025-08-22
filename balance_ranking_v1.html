@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Balance Ranking Podium</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- GSAP CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Zen Maru Gothic', sans-serif;
+        background: linear-gradient(to bottom, #f8fafc, #e0f2fe);
+      }
+      .podium div {
+        animation: fadeInUp 0.8s ease forwards;
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body class="flex items-center justify-center min-h-screen">
+    <div id="podium" class="flex gap-4 items-end podium"></div>
+
+    <script>
+      async function fetchRanking() {
+        const res = await fetch('https://ddtszhkycoqnffgciucl.supabase.co/functions/v1/GetSheetDataGetForRanking'); // ← ここを実際のURLに置き換えてください
+        const result = await res.json();
+        const data = result.data;
+
+        const podium = document.getElementById('podium');
+        const medals = ['🥇', '🥈', '🥉'];
+        const heights = ['h-48', 'h-36', 'h-28'];
+
+        data.slice(0, 3).forEach((user, index) => {
+          const el = document.createElement('div');
+          el.className = `flex flex-col items-center justify-end bg-white shadow-md rounded-xl w-28 ${heights[index]} p-2 relative`;
+          el.innerHTML = `
+            <div class="text-3xl">${medals[index]}</div>
+            <div class="font-bold mt-2">${user.nickname}</div>
+            <div class="text-sm text-gray-600">¥${user.balance.toLocaleString()}</div>
+          `;
+          podium.appendChild(el);
+        });
+
+        // GSAP animation
+        gsap.from('.podium div', {
+          y: 50,
+          opacity: 0,
+          duration: 0.6,
+          stagger: 0.2,
+          ease: 'back.out(1.7)'
+        });
+      }
+
+      fetchRanking();
+    </script>
+  </body>
+</html>
