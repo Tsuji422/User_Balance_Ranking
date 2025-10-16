@@ -3,113 +3,82 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Balance Ranking Podium</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- GSAP CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic&display=swap" rel="stylesheet" />
+    <title>順位表示</title>
     <style>
-      body {
-        font-family: 'Zen Maru Gothic', sans-serif;
-        background: linear-gradient(to bottom, #E4F7F7, #CFF0EA, #A9DDD6);
-        padding: env(safe-area-inset-top, 16px) env(safe-area-inset-right, 16px) env(safe-area-inset-bottom, 16px) env(safe-area-inset-left, 16px);
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
         overflow: hidden; /* スクロール禁止 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: transparent; /* 背景透過 */
+        font-family: 'Zen Maru Gothic', sans-serif;
       }
-      .podium-card {
-        animation: fadeInUp 0.8s ease forwards;
+
+      /* 数字表示 */
+      #rank {
+        font-size: 4rem;
+        font-weight: bold;
+        color: #555;
+        text-align: center;
       }
-      @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+
+      /* ランク装飾 */
+      .rank-1 {
+        color: #d4af37; /* 金 */
+        text-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
       }
-      .gold-bg {
-        background: linear-gradient(to top, #f9d423, #ff4e50);
+      .rank-2 {
+        color: #c0c0c0; /* 銀 */
+        text-shadow: 0 0 8px rgba(192, 192, 192, 0.5);
       }
-      .silver-bg {
-        background: linear-gradient(to top, #d7d7d7, #eeeeee);
-      }
-      .bronze-bg {
-        background: linear-gradient(to top, #cd7f32, #f2c888);
+      .rank-3 {
+        color: #cd7f32; /* 銅 */
+        text-shadow: 0 0 8px rgba(205, 127, 50, 0.5);
       }
     </style>
   </head>
-  <body class="min-h-screen flex flex-col items-center justify-center px-4">
-    <div id="podium" class="flex flex-wrap gap-4 items-end justify-center max-w-xl w-full mb-8"></div>
-    <div id="ranking-list" class="w-full max-w-md mx-auto bg-white rounded-xl shadow-lg p-4">
-      <h2 class="text-lg font-bold mb-3 text-center">ランキング一覧</h2>
-      <ul id="ranking-ul" class="space-y-2"></ul>
-    </div>
+  <body>
+    <div id="rank">--</div>
 
     <script>
-      async function fetchRanking() {
+      async function fetchRank() {
+        const params = new URLSearchParams(window.location.search);
+        const userName = params.get("user_name");
+        const rankEl = document.getElementById("rank");
+
+        if (!userName) {
+          rankEl.textContent = "--";
+          return;
+        }
+
         try {
-          const res = await fetch('https://ddtszhkycoqnffgciucl.supabase.co/functions/v1/GetSheetDataForRankingNomber_v1'); // ← 実際のURLに置き換え
+          // ✅ Supabase Edge Function のURLを設定
+          const res = await fetch(`https://ddtszhkycoqnffgciucl.supabase.co/functions/v1/GetSheetDataForRankingNomber_v1?user_name=${encodeURIComponent(userName)}`);
           const result = await res.json();
-          const data = result.data;
 
-          const podium = document.getElementById('podium');
-          const rankingList = document.getElementById('ranking-ul');
-          const ranks = [
-            { medal: '🥇', class: 'gold-bg', height: 'h-40' },
-            { medal: '🥈', class: 'silver-bg', height: 'h-36' },
-            { medal: '🥉', class: 'bronze-bg', height: 'h-32' }
-          ];
+          if (result.error) {
+            rankEl.textContent = "--";
+            return;
+          }
 
-          // 中央を1位、左が2位、右が3位になるよう順番を調整
-          const layout = [1, 0, 2];
+          const rank = result.rank;
+          rankEl.textContent = rank;
 
-          layout.forEach((dataIndex) => {
-            const user = data[dataIndex];
-            if (!user) return;
+          // 上位3位に応じて装飾を付ける
+          if (rank === 1) rankEl.classList.add("rank-1");
+          else if (rank === 2) rankEl.classList.add("rank-2");
+          else if (rank === 3) rankEl.classList.add("rank-3");
 
-            const { medal, class: bgClass, height } = ranks[dataIndex];
-            const el = document.createElement('div');
-            el.className = `podium-card flex flex-col items-center justify-end text-white shadow-xl rounded-2xl w-20 sm:w-24 ${height} ${bgClass} p-2 relative`;
-            el.innerHTML = `
-              <div class="text-xl sm:text-2xl">${medal}</div>
-              <div class="font-bold text-xs sm:text-sm mt-1 text-center">${user.nickname}</div>
-            `;
-            podium.appendChild(el);
-          });
-
-          data.forEach((user, index) => {
-            const li = document.createElement('li');
-            li.className = "flex justify-between items-center bg-gray-50 px-4 py-2 rounded-md";
-
-            let rankDisplay = `<span class='text-gray-500 font-bold text-sm'>${index + 1}</span>`;
-            if (index === 0) rankDisplay = "<span class='text-yellow-500 font-bold text-lg'>🥇</span>";
-            else if (index === 1) rankDisplay = "<span class='text-gray-400 font-bold text-lg'>🥈</span>";
-            else if (index === 2) rankDisplay = "<span class='text-orange-400 font-bold text-lg'>🥉</span>";
-
-            li.innerHTML = `
-              ${rankDisplay}
-              <span class="truncate">${user.nickname}</span>
-              <span>¥${user.balance.toLocaleString()}</span>
-            `;
-            rankingList.appendChild(li);
-          });
-
-          gsap.from('.podium-card', {
-            y: 50,
-            opacity: 0,
-            duration: 0.6,
-            stagger: 0.2,
-            ease: 'back.out(1.7)'
-          });
         } catch (err) {
-          document.body.innerHTML = '<p class="text-red-500 text-center">ランキング情報の取得に失敗しました。</p>';
+          rankEl.textContent = "--";
         }
       }
 
-      fetchRanking();
+      fetchRank();
     </script>
   </body>
 </html>
