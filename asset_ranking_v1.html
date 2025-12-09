@@ -70,7 +70,7 @@
             el.innerHTML = `
               <div class="text-3xl sm:text-4xl">${medal}</div>
               <div class="font-bold text-base sm:text-lg mt-2">${user.nickname}</div>
-              <div class="text-xs sm:text-sm">¥${user.balance.toLocaleString()}</div>
+              <div class="text-xs sm:text-sm">¥${user.total_asset.toLocaleString()}</div>
             `;
             podium.appendChild(el);
           });
